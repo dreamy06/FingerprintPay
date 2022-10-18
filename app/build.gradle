@@ -12,15 +12,13 @@ android {
         versionName "4.4.1"
         buildConfigField "String", "APP_PRODUCT_NAME", "\"FingerprintPay\""
     }
-    
-    
+
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             zipAlignEnabled true
-            signingConfig signingConfigs.debug
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -38,17 +36,19 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    
-    
-    signingConfigs {
-        debug {
-            storeFile file('../keystore/key')
-            storePassword '123456'
-            keyAlias 'public'
-            keyPassword '123456'
-            v1SigningEnabled true
-            v2SigningEnabled true
+
+    //https://proandroiddev.com/how-to-securely-build-and-sign-your-android-app-with-github-actions-ad5323452ce#fromHistory
+    def keystoreFile = file('keystore.jks')
+    if (keystoreFile.exists()) {
+        signingConfigs {
+            release {
+                storeFile = keystoreFile
+                storePassword System.getenv("SIGNING_STORE_PASSWORD")
+                keyAlias System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
+            }
         }
+        buildTypes.release.signingConfig signingConfigs.debug
     }
 }
 

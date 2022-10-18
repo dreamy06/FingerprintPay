@@ -1,8 +1,13 @@
 name: Android CI
 
 on:
-  push:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
 
 jobs:
   build:
@@ -33,12 +38,14 @@ jobs:
           cache: gradle
       - name: Build Riru modules
         run: cd ./riru && bash ./make.sh
-      
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew clean ":app:assembleRelease"
-
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
       - name: Upload Apk
         uses: actions/upload-artifact@v2.2.0
         with:
