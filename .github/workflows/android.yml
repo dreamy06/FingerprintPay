@@ -41,7 +41,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew clean ":app:assembleRelease"
+        run: ./gradlew assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
@@ -58,23 +58,3 @@ jobs:
           path: |
             riru/build/release/*.zip
             !riru/build/release/*-all-*.zip
-      - name: Assign release version from version.properties to Env variable
-        run: |
-          cat ./app/build.gradle| grep versionName | sed -E 's/.+"(.+)".*/release_version=\1/g' >> $GITHUB_ENV
-      - name: Echo release version from  Env variable
-        run: |
-          echo "${{ env.release_version }}"
-      - name: Delete drafts
-        uses: hugo19941994/delete-draft-releases@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Release draft
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          name: "${{ env.release_version }}"
-          tag_name: "${{ env.release_version }}-ci"
-          files: |
-            app/build/outputs/apk/release/*.apk
-            riru/build/release/*.zip
-          body: "[Github Action](https://github.com/${{github.repository}}/actions/runs/${{github.run_id}})"
