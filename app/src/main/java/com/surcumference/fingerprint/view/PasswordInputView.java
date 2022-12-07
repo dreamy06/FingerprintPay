@@ -1,5 +1,6 @@
 package com.surcumference.fingerprint.view;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
@@ -56,6 +57,7 @@ public class PasswordInputView extends DialogFrameLayout {
         mInputView.setFocusable(true);
         mInputView.setFocusableInTouchMode(true);
         mInputView.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+        mInputView.setShowSoftInputOnFocus(true);
         String packageName = context.getPackageName();
         if (Constant.PACKAGE_NAME_ALIPAY.equals(packageName)
                 || Constant.PACKAGE_NAME_TAOBAO.equals(packageName)
@@ -87,6 +89,14 @@ public class PasswordInputView extends DialogFrameLayout {
         this.addView(rootLLayout, rootLLayoutParams);
 
         withPositiveButtonText(Lang.getString(R.id.ok));
+        withOnPositiveButtonClickListener((dialog, which) -> {
+            mInputView.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mInputView.getWindowToken(), 0);
+            post(() -> {
+                dialog.dismiss();
+            });
+        });
     }
 
     @NonNull
@@ -107,10 +117,18 @@ public class PasswordInputView extends DialogFrameLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        post(() -> {
+        mInputView.requestFocus();
+        postDelayed(() -> {
             InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(mInputView, InputMethodManager.SHOW_IMPLICIT);
-        });
+        }, 200);
+    }
+
+    @Override
+    public AlertDialog showInDialog() {
+        AlertDialog dialog = super.showInDialog();
+        dialog.setCanceledOnTouchOutside(false);
+        return dialog;
     }
 
     @Override
